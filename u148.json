@@ -1,0 +1,7 @@
+{
+    "name":"",
+    "mode":"HttpClient",
+    "startPage":["http://www.u148.net/article/142104.html"],
+    "connTimeout":3,
+    "tryTimes":1
+}
