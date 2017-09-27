@@ -1,5 +1,0 @@
-2017/09/26 22:44:24 [E] [crawler_qq_test.go:170] qq_say 数据保存失败:%!(EXTRA string=sql: converting argument $2 type: unsupported type []interface {}, a slice of interface)
-2017/09/26 23:01:17 [E] [crawler_qq_test.go:143] qq_user_base_info 数据保存失败:%!(EXTRA string=Error 1062: Duplicate entry '2458208514' for key 'qq_user_base_info_qq_uindex')
-2017/09/26 23:05:43 [E] [crawler_qq_test.go:143] qq_user_base_info 数据保存失败:%!(EXTRA string=Error 1062: Duplicate entry '2458208514' for key 'qq_user_base_info_qq_uindex')
-2017/09/26 23:08:32 [E] [crawler_qq_test.go:143] qq_user_base_info 数据保存失败:%!(EXTRA string=Error 1062: Duplicate entry '2458208514' for key 'qq_user_base_info_qq_uindex')
-2017/09/26 23:21:03 [E] [crawler_qq_test.go:143] qq_user_base_info 数据保存失败:%!(EXTRA string=Error 1062: Duplicate entry '2458208514' for key 'qq_user_base_info_qq_uindex')
