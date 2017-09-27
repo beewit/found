@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"net/http"
 	"strings"
-	"testing"
 	"time"
 
 	"github.com/beewit/beekit/redis"
@@ -22,14 +21,6 @@ const (
 	QQ_SPIDER_FAILED = "QQ_SPIDER_FAILED"
 	QQ_SPIDER_DATA   = "QQ_SPIDER_DATA"
 )
-
-func TestSet(t *testing.T) {
-	v, err := global.RD.GetSETRandStringRm(QQ_SPIDER)
-	if err != nil {
-		println(err.Error())
-	}
-	println("value:", v)
-}
 
 func addQueue(value string) {
 	if !checkDoneQueue(value) && !checkFailedQueue(value) && !checkQueue(value) {
@@ -104,6 +95,7 @@ func getData() map[string]interface{} {
 
 func saveData() {
 	for {
+		global.Log.Info("执行数据保存服务")
 		m := getData()
 		if m != nil {
 			iw, _ := utils.NewIdWorker(1)
@@ -187,11 +179,8 @@ func saveData() {
 	}
 }
 
-func TestData(t *testing.T) {
-	saveData()
-}
-
-func TestQQ(t *testing.T) {
+func main() {
+	go saveData()
 	driver := agouti.ChromeDriver(agouti.ChromeOptions("args", []string{
 		"--start-maximized",
 		"--disable-infobars",
@@ -298,6 +287,7 @@ func TestQQ(t *testing.T) {
 		//page.SwitchToParentFrame()
 		//获取他人个人资料，个人动态，群等
 		getQQ(page, global.QZONEUName)
+
 	}
 }
 
