@@ -12,6 +12,8 @@ import (
 	"github.com/sclevine/agouti"
 	"github.com/sclevine/agouti/api"
 	"regexp"
+	"github.com/beewit/beekit/utils"
+	"github.com/beewit/beekit/utils/convert"
 )
 
 const (
@@ -73,7 +75,120 @@ func addDataQueue(value map[string]interface{}) {
 		println(err.Error())
 		return
 	}
-	global.RD.SetSETString(QQ_SPIDER_DATA, string(b))
+	x, err := global.RD.SetSETString(QQ_SPIDER_DATA, string(b))
+	if err != nil {
+		println(err.Error())
+	}
+	println(x)
+}
+
+func getDataQueue() (string, error) {
+	return global.RD.GetSETRandStringRm(QQ_SPIDER_DATA)
+}
+
+func getData() map[string]interface{} {
+	d, err := getDataQueue()
+	if err != nil {
+		println(err.Error())
+		return nil
+	}
+	if d != "" {
+		m := map[string]interface{}{}
+		err = json.Unmarshal([]byte(d), &m)
+		if err == nil {
+			return m
+		}
+	}
+	return nil
+}
+
+func saveData() {
+	for {
+		m := getData()
+		if m != nil {
+			iw, _ := utils.NewIdWorker(1)
+
+			qqBase := map[string]interface{}{}
+			qqBase_id, _ := iw.NextId()
+			qqBase["id"] = qqBase_id
+			qqBase["qq"] = m["qq"]
+			qqBase["nickname"] = m["nice_name"]
+			qqBase["head_img"] = m["head_img"]
+			qqBase["url"] = m["url"]
+
+			if m["info"] != nil {
+				info, err := convert.Obj2Map(m["info"])
+				if err != nil {
+					global.Log.Error("info 转换失败:", err.Error())
+				} else {
+					qqBase["gender"] = info["sex"]
+					qqBase["age"] = info["age"]
+					qqBase["constell"] = info["astro"]
+					qqBase["birthday"] = info["birthday"]
+					qqBase["place"] = info["live_address"]
+					qqBase["marriage"] = info["marriage"]
+					qqBase["blood_type"] = info["blood"]
+					qqBase["hometown"] = info["hometown_address"]
+					qqBase["profession"] = info["career"]
+					qqBase["company"] = info["company"]
+					qqBase["company_address"] = info["company_caddress"]
+					qqBase["detail_address"] = info["caddress"]
+				}
+			}
+
+			qqBase["ct_time"] = utils.CurrentTime()
+			qqBase["ut_time"] = utils.CurrentTime()
+			_, err := global.DB.InsertMap("qq_user_base_info", qqBase)
+			if err != nil {
+				global.Log.Error("qq_user_base_info 数据保存失败:", err.Error())
+			} else {
+				//QQ动态
+				if m["tell"] != nil {
+					sayMapList := []map[string]interface{}{}
+					tell, err := convert.Obj2ListMap(m["tell"])
+					if err != nil {
+						global.Log.Error("tell QQ 动态 转换失败:", err.Error())
+					} else {
+						for i := 0; i < len(tell); i++ {
+							qqSay_id, _ := iw.NextId()
+							sayMap := map[string]interface{}{}
+							comments := ""
+							if tell[i]["tell_comments"] != nil {
+								b, err := json.Marshal(tell[i]["tell_comments"])
+								if err != nil {
+									global.Log.Error("tell_comments 评论 Json转换失败:", err.Error())
+								} else {
+									comments = string(b)
+								}
+							}
+							sayMap["id"] = qqSay_id
+							sayMap["qq_base_id"] = qqBase_id
+							sayMap["say"] = tell[i]["tell_text"]
+							sayMap["content"] = tell[i]["tell_summary"]
+							sayMap["phone"] = tell[i]["tell_phone"]
+							sayMap["browse"] = tell[i]["tell_browse"]
+							sayMap["comments"] = comments
+							sayMap["say_date"] = tell[i]["tell_date"]
+							sayMap["ct_time"] = utils.CurrentTime()
+							sayMapList = append(sayMapList, sayMap)
+						}
+					}
+					if sayMapList != nil && len(sayMapList) > 0 {
+						_, err = global.DB.InsertMapList("qq_say", sayMapList)
+						if err != nil {
+							global.Log.Error("qq_say 数据保存失败:", err.Error())
+						}
+					}
+				}
+			}
+		}
+		time.Sleep(time.Second * 5)
+
+	}
+}
+
+func TestData(t *testing.T) {
+	saveData()
 }
 
 func TestQQ(t *testing.T) {
@@ -195,8 +310,8 @@ func getQQ(page *agouti.Page, qq string) {
 	m := map[string]interface{}{}
 	html, _ := page.HTML()
 	println(len(html))
-	if !strings.Contains(html, "申请访问") && !strings.Contains(html, "不符合互联网相关安全规范") && !strings.Contains(html, "对方未开通空间") && !strings.Contains(html, "暂不支持非好友访问") {
-		nice_name, err := page.Find(".user-info .user-name").Text()
+	if !strings.Contains(html, "申请访问") && !strings.Contains(html, "不符合互联网相关安全规范") && !strings.Contains(html, "对方未开通空间") && !strings.Contains(html, "暂不支持非好友访问") && !strings.Contains(html, "您访问的页面找不回来了") {
+		nice_name, err := page.Find(".head-detail .user-name").Text()
 		if err != nil {
 			println(err.Error())
 		}
@@ -322,6 +437,11 @@ func getTell(page *agouti.Page, qq string) []map[string]interface{} {
 				e, _ = eles[i].GetElement(api.Selector{"css selector", ".rt_content"})
 				if e != nil {
 					m["tell_summary"], _ = e.GetText()
+					//手机型号
+					e, _ = eles[i].GetElement(api.Selector{"css selector", ".custom-tail"})
+					if e != nil {
+						m["tell_phone"], _ = e.GetText()
+					}
 				}
 				//发表时间
 				e, _ = eles[i].GetElement(api.Selector{"css selector", ".bgr3>.ft .info a"})
@@ -340,6 +460,11 @@ func getTell(page *agouti.Page, qq string) []map[string]interface{} {
 					if len(us) > 0 {
 						m["tell_like_users"] = us
 					}
+				}
+				//浏览量
+				e, _ = eles[i].GetElement(api.Selector{"css selector", "a.qz_feed_plugin"})
+				if e != nil {
+					m["tell_browse"], _ = e.GetText()
 				}
 				//评论
 				es, _ = eles[i].GetElements(api.Selector{"css selector", ".comments_content"})
@@ -369,6 +494,9 @@ func getInfo(page *agouti.Page, qq string) map[string]string {
 	iframe, ee := page.Find(".app_canvas_frame").Elements()
 	if ee != nil {
 		println(ee.Error())
+	}
+	if len(iframe) <= 0 {
+		return nil
 	}
 	ee2 := page.SwitchToRootFrameByName(iframe[0])
 	if ee2 != nil {
