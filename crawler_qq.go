@@ -63,14 +63,14 @@ func checkFailedQueue(value string) bool {
 func addDataQueue(value map[string]interface{}) {
 	b, err := json.Marshal(value)
 	if err != nil {
-		println(err.Error())
+		global.Log.Info(err.Error())
 		return
 	}
 	x, err := global.RD.SetSETString(QQ_SPIDER_DATA, string(b))
 	if err != nil {
-		println(err.Error())
+		global.Log.Info(err.Error())
 	}
-	println(x)
+	global.Log.Info("添加数据到Redis结果%v", x)
 }
 
 func getDataQueue() (string, error) {
@@ -80,7 +80,7 @@ func getDataQueue() (string, error) {
 func getData() map[string]interface{} {
 	d, err := getDataQueue()
 	if err != nil {
-		println(err.Error())
+		global.Log.Warning("无数据", err.Error())
 		return nil
 	}
 	if d != "" {
@@ -174,7 +174,7 @@ func saveData() {
 				}
 			}
 		}
-		time.Sleep(time.Second * 5)
+		time.Sleep(time.Second * 10)
 
 	}
 }
@@ -190,11 +190,11 @@ func main() {
 	var err error
 	global.Page.Page, err = driver.NewPage()
 	if err != nil {
-		println(err.Error())
+		global.Log.Info(err.Error())
 	} else {
 		flog, ce := setCookieLogin(global.Page, "qqzone"+global.QZONEUName)
 		if ce != nil {
-			println(ce.Error())
+			global.Log.Info(ce.Error())
 			return
 		}
 		if flog {
@@ -202,10 +202,10 @@ func main() {
 			time.Sleep(time.Second * 3)
 			src, ei := global.Page.Find(".head-avatar img").Attribute("src")
 			if ei != nil {
-				println(ei.Error())
+				global.Log.Info(ei.Error())
 			}
 			if src != "" {
-				println("头像", src)
+				global.Log.Info("头像", src)
 			} else {
 				flog = false
 			}
@@ -215,22 +215,22 @@ func main() {
 			time.Sleep(time.Second * 3)
 			iframe, ee := global.Page.Find("#login_frame").Elements()
 			if ee != nil {
-				println(ee.Error())
+				global.Log.Info(ee.Error())
 			}
 			e2 := global.Page.SwitchToRootFrameByName(iframe[0])
 			if e2 != nil {
-				println(e2.Error())
+				global.Log.Info(e2.Error())
 				return
 			}
 			text, e3 := global.Page.Find("#switcher_plogin").Text()
 			if e3 != nil {
-				println(e3.Error())
+				global.Log.Info(e3.Error())
 				return
 			}
-			println("登陆按钮", text)
+			global.Log.Info("登陆按钮", text)
 			e4 := global.Page.Find("#switcher_plogin").Click()
 			if e4 != nil {
-				println("登陆失败", e4.Error())
+				global.Log.Info("登陆失败", e4.Error())
 				return
 			}
 			global.Page.FindByID("u").Fill(global.QZONEUName)
@@ -244,27 +244,27 @@ func main() {
 
 			iframe, ef := global.Page.Find("#login_frame").Elements()
 			if ef != nil {
-				println(ef.Error())
+				global.Log.Info(ef.Error())
 			}
 			if iframe != nil && len(iframe) > 0 {
 				eef := global.Page.SwitchToRootFrameByName(iframe[0])
 				if eef != nil {
-					println(eef.Error())
+					global.Log.Info(eef.Error())
 				}
 			}
 			for {
 				//是否有验证码
 				html, _ := global.Page.HTML()
 				if strings.Contains(html, "请您输入下图中的验证码") {
-					println("等待输入验证码")
+					global.Log.Info("等待输入验证码")
 					continue
 				}
 				if strings.Contains(html, "QQ手机版授权") {
-					println("等待QQ手机版授权")
+					global.Log.Info("等待QQ手机版授权")
 					continue
 				}
 				if strings.Contains(html, "安全登录") {
-					println("等待手工登陆")
+					global.Log.Info("等待手工登陆")
 					continue
 				}
 				time.Sleep(time.Second * 1)
@@ -273,11 +273,11 @@ func main() {
 
 			c, err5 := global.Page.GetCookies()
 			if err5 != nil {
-				println("登陆失败", e4.Error())
+				global.Log.Info("登陆失败", e4.Error())
 				return
 			}
 			cookieJson, _ := json.Marshal(c)
-			//println("cookie", string(cookieJson[:]))
+			//global.Log.Info("cookie", string(cookieJson[:]))
 			redis.Cache.SetString("qqzone"+global.QZONEUName, string(cookieJson[:]))
 
 		}
@@ -294,17 +294,19 @@ func main() {
 
 func getQQ(page *utils.AgoutiPage, qq string) {
 	addDoneQueue(qq)
-	println("爬取的QQ", qq)
+	global.Log.Info("一、爬取的QQ", qq)
 	url := "https://user.qzone.qq.com/" + qq
-	global.Page.Navigate(url)
+	global.Page.Navigate(url + "/311")
+	//global.Page.Navigate(url)
+	global.Log.Info("二、爬取的QQ《", qq, "》已进入说说页面跳转完成", qq)
 	time.Sleep(time.Second * 3)
 	m := map[string]interface{}{}
 	html, _ := global.Page.HTML()
-	println(len(html))
+	global.Log.Info("三、爬取的QQ《", qq, "》解析页面结果量", len(html))
 	if !strings.Contains(html, "申请访问") && !strings.Contains(html, "不符合互联网相关安全规范") && !strings.Contains(html, "对方未开通空间") && !strings.Contains(html, "暂不支持非好友访问") && !strings.Contains(html, "您访问的页面找不回来了") {
 		nice_name, err := global.Page.Find(".head-detail .user-name").Text()
 		if err != nil {
-			println(err.Error())
+			global.Log.Error(err.Error())
 		}
 		m["nice_name"] = nice_name
 		m["qq"] = qq
@@ -321,40 +323,55 @@ func getQQ(page *utils.AgoutiPage, qq string) {
 	newQQ := getQueue()
 	if newQQ != "" {
 		getQQ(page, newQQ)
+	} else {
+		global.Log.Warning("                                                                                               ")
+		global.Log.Warning("========================================                 =====================================")
+		global.Log.Warning("=======================================   无可爬取的QQ号了   =====================================")
+		global.Log.Warning("========================================                 =====================================")
+		global.Log.Warning("                                                                                               ")
+		global.Log.Warning("                                                                                               ")
+		global.Log.Warning("                                    》》》》》3分钟后重启《《《《《                                 ")
+		global.Log.Warning("                                                                                               ")
+		time.Sleep(time.Minute * 3)
+		////数据
+		count := 0
+		getHome(global.Page, count)
+		getQQ(global.Page, global.QZONEUName)
 	}
 }
 
 func SwitchFrame(page *utils.AgoutiPage, frameSeletor string, f func()) {
 	iframe, ee := global.Page.Find(frameSeletor).Elements()
 	if ee != nil {
-		println(ee.Error())
+		global.Log.Info(ee.Error())
 	}
 	if len(iframe) > 0 {
 		ee2 := global.Page.SwitchToRootFrameByName(iframe[0])
 		if ee2 != nil {
-			println(ee.Error())
+			global.Log.Info(ee.Error())
 		}
 		f()
 		global.Page.SwitchToParentFrame()
 	} else {
-		println("******     iframe   切换失败")
+		global.Log.Info("******     iframe   切换失败")
 	}
 }
 
 //个人动态
 func getTell(page *utils.AgoutiPage, qq string) []map[string]interface{} {
 
-	global.Page.Navigate("https://user.qzone.qq.com/" + qq + "/311")
-	time.Sleep(time.Second * 3)
+	global.Log.Info("四、解析QQ《", qq, "》说说")
+	//global.Page.Navigate("https://user.qzone.qq.com/" + qq + "/311")
+	//time.Sleep(time.Second * 3)
 
 	iframe, ee := global.Page.Find(".app_canvas_frame").Elements()
 	if ee != nil {
-		println(ee.Error())
+		global.Log.Info(ee.Error())
 	}
 	if len(iframe) > 0 {
 		ee2 := global.Page.SwitchToRootFrameByName(iframe[0])
 		if ee2 != nil {
-			println(ee.Error())
+			global.Log.Info(ee.Error())
 		}
 	}
 	time.Sleep(time.Second * 3)
@@ -413,7 +430,7 @@ func getTell(page *utils.AgoutiPage, qq string) []map[string]interface{} {
 		}
 	} else {
 		html, _ := global.Page.Find("#msgList").Text()
-		println(len(html))
+		global.Log.Info("解析html数据量%v", len(html))
 
 		eles, _ := global.Page.Find("#msgList").All(".feed").Elements()
 		if eles != nil {
@@ -480,23 +497,24 @@ func getTell(page *utils.AgoutiPage, qq string) []map[string]interface{} {
 
 //个人资料
 func getInfo(page *utils.AgoutiPage, qq string) map[string]string {
+	global.Log.Info("四、解析QQ《", qq, "》个人资料")
 	global.Page.Navigate("https://user.qzone.qq.com/" + qq + "/1")
 	time.Sleep(time.Second * 3)
 	iframe, ee := global.Page.Find(".app_canvas_frame").Elements()
 	if ee != nil {
-		println(ee.Error())
+		global.Log.Info(ee.Error())
 	}
 	if len(iframe) <= 0 {
 		return nil
 	}
 	ee2 := global.Page.SwitchToRootFrameByName(iframe[0])
 	if ee2 != nil {
-		println(ee2.Error())
+		global.Log.Info(ee2.Error())
 	}
 
 	text, ee3 := global.Page.FindByID("info_preview").Text()
 	if ee3 != nil {
-		println(ee3.Error())
+		global.Log.Info(ee3.Error())
 		global.Page.FindByID("info_tab").Click()
 	}
 	if text == "" {
@@ -540,65 +558,65 @@ func getHome(page *utils.AgoutiPage, count int) []map[string]string {
 
 	list, e6 := global.Page.Find("#feed_friend_list").All(".f-single").Elements()
 	if e6 != nil {
-		println("获取好友数据失败", e6.Error())
+		global.Log.Info("获取好友数据失败", e6.Error())
 		return nil
 	}
-	println("总数量", len(list))
+	global.Log.Info("总数量", len(list))
 	var s string
 	var e7 error
 	var ele *api.Element
 	for i := range list {
 
-		println("---------------------------------------------------------\r\n")
+		global.Log.Info("---------------------------------------------------------\r\n")
 
 		s, e7 = list[i].GetAttribute("id")
 		if e7 != nil {
-			println("错误：", e7.Error())
+			global.Log.Info("错误：", e7.Error())
 		}
-		println("id：", s)
+		global.Log.Info("id：", s)
 		ele, e7 = list[i].GetElement(api.Selector{"css selector", ".user-pto img"})
 		if e7 != nil {
-			println("错误：", e7.Error())
+			global.Log.Info("错误：", e7.Error())
 		}
 		s, e7 = ele.GetAttribute("src")
-		println("头像：", s)
+		global.Log.Info("头像：", s)
 
 		ele, _ = list[i].GetElement(api.Selector{"css selector", ".user-pto a"})
 		if e7 != nil {
-			println("错误：", e7.Error())
+			global.Log.Info("错误：", e7.Error())
 		}
 		s, e7 = ele.GetAttribute("href")
-		println("空间链接：", s)
+		global.Log.Info("空间链接：", s)
 
 		ele, _ = list[i].GetElement(api.Selector{"css selector", ".f-single-content"})
 		if e7 != nil {
-			println("错误：", e7.Error())
+			global.Log.Info("错误：", e7.Error())
 		}
 		s, e7 = ele.GetText()
-		println("发表内容：", s)
+		global.Log.Info("发表内容：", s)
 
 		ele, _ = list[i].GetElement(api.Selector{"css selector", ".qz_feed_plugin"})
 		if e7 != nil {
-			println("错误：", e7.Error())
+			global.Log.Info("错误：", e7.Error())
 		}
 		s, e7 = ele.GetText()
-		println("浏览量：", s)
+		global.Log.Info("浏览量：", s)
 
 		ele, _ = list[i].GetElement(api.Selector{"css selector", ".comments-list"})
 		if e7 != nil {
-			println("错误：", e7.Error())
+			global.Log.Info("错误：", e7.Error())
 		}
 		s, e7 = ele.GetText()
-		println("评论：", s)
+		global.Log.Info("评论：", s)
 
 		ele, _ = list[i].GetElement(api.Selector{"css selector", ".user-list"})
 		if e7 != nil {
-			println("错误：", e7.Error())
+			global.Log.Info("错误：", e7.Error())
 		}
 		s, e7 = ele.GetText()
-		println("点赞：", s)
+		global.Log.Info("点赞：", s)
 
-		println("---------------------------------------------------------\r\n")
+		global.Log.Info("---------------------------------------------------------\r\n")
 	}
 	global.Page.RunScript("document.documentElement.scrollTop=document.body.clientHeight;", nil, nil)
 	time.Sleep(time.Second * 3)
