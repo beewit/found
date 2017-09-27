@@ -6,6 +6,7 @@ import (
 	"github.com/beewit/beekit/utils/convert"
 	"github.com/beewit/beekit/redis"
 	"github.com/beewit/beekit/mysql"
+	"github.com/beewit/beekit/utils"
 )
 
 var (
@@ -15,4 +16,5 @@ var (
 	RD         = redis.Cache
 	QZONEUName = convert.ToString(CFG.Get("qzone.u"))
 	QZONEPwd   = convert.ToString(CFG.Get("qzone.p"))
+	Page       = new(utils.AgoutiPage)
 )

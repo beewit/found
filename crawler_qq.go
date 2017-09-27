@@ -187,19 +187,20 @@ func main() {
 		"--app=https://i.qq.com/?rd=1",
 		"--webkit-text-size-adjust"}))
 	driver.Start()
-	page, err := driver.NewPage()
+	var err error
+	global.Page.Page, err = driver.NewPage()
 	if err != nil {
 		println(err.Error())
 	} else {
-		flog, ce := setCookieLogin(page, "qqzone"+global.QZONEUName)
+		flog, ce := setCookieLogin(global.Page, "qqzone"+global.QZONEUName)
 		if ce != nil {
 			println(ce.Error())
 			return
 		}
 		if flog {
-			page.Navigate("https://user.qzone.qq.com/" + global.QZONEUName)
+			global.Page.Navigate("https://user.qzone.qq.com/" + global.QZONEUName)
 			time.Sleep(time.Second * 3)
-			src, ei := page.Find(".head-avatar img").Attribute("src")
+			src, ei := global.Page.Find(".head-avatar img").Attribute("src")
 			if ei != nil {
 				println(ei.Error())
 			}
@@ -210,50 +211,50 @@ func main() {
 			}
 		}
 		if !flog {
-			page.Navigate("https://i.qq.com/?rd=1")
+			global.Page.Navigate("https://i.qq.com/?rd=1")
 			time.Sleep(time.Second * 3)
-			iframe, ee := page.Find("#login_frame").Elements()
+			iframe, ee := global.Page.Find("#login_frame").Elements()
 			if ee != nil {
 				println(ee.Error())
 			}
-			e2 := page.SwitchToRootFrameByName(iframe[0])
+			e2 := global.Page.SwitchToRootFrameByName(iframe[0])
 			if e2 != nil {
 				println(e2.Error())
 				return
 			}
-			text, e3 := page.Find("#switcher_plogin").Text()
+			text, e3 := global.Page.Find("#switcher_plogin").Text()
 			if e3 != nil {
 				println(e3.Error())
 				return
 			}
 			println("登陆按钮", text)
-			e4 := page.Find("#switcher_plogin").Click()
+			e4 := global.Page.Find("#switcher_plogin").Click()
 			if e4 != nil {
 				println("登陆失败", e4.Error())
 				return
 			}
-			page.FindByID("u").Fill(global.QZONEUName)
+			global.Page.FindByID("u").Fill(global.QZONEUName)
 			time.Sleep(time.Second * 1)
-			page.FindByID("p").Fill(global.QZONEPwd)
+			global.Page.FindByID("p").Fill(global.QZONEPwd)
 			time.Sleep(time.Second * 2)
-			page.FindByID("login_button").Click()
+			global.Page.FindByID("login_button").Click()
 			time.Sleep(time.Second * 2)
-			page.SwitchToParentFrame()
+			global.Page.SwitchToParentFrame()
 			time.Sleep(time.Second * 3)
 
-			iframe, ef := page.Find("#login_frame").Elements()
+			iframe, ef := global.Page.Find("#login_frame").Elements()
 			if ef != nil {
 				println(ef.Error())
 			}
 			if iframe != nil && len(iframe) > 0 {
-				eef := page.SwitchToRootFrameByName(iframe[0])
+				eef := global.Page.SwitchToRootFrameByName(iframe[0])
 				if eef != nil {
 					println(eef.Error())
 				}
 			}
 			for {
 				//是否有验证码
-				html, _ := page.HTML()
+				html, _ := global.Page.HTML()
 				if strings.Contains(html, "请您输入下图中的验证码") {
 					println("等待输入验证码")
 					continue
@@ -270,7 +271,7 @@ func main() {
 				break
 			}
 
-			c, err5 := page.GetCookies()
+			c, err5 := global.Page.GetCookies()
 			if err5 != nil {
 				println("登陆失败", e4.Error())
 				return
@@ -283,31 +284,31 @@ func main() {
 		////数据
 		count := 0
 		////初步获取QQ号码
-		getHome(page, count)
-		//page.SwitchToParentFrame()
+		getHome(global.Page, count)
+		//global.Page.SwitchToParentFrame()
 		//获取他人个人资料，个人动态，群等
-		getQQ(page, global.QZONEUName)
+		getQQ(global.Page, global.QZONEUName)
 
 	}
 }
 
-func getQQ(page *agouti.Page, qq string) {
+func getQQ(page *utils.AgoutiPage, qq string) {
 	addDoneQueue(qq)
 	println("爬取的QQ", qq)
 	url := "https://user.qzone.qq.com/" + qq
-	page.Navigate(url)
+	global.Page.Navigate(url)
 	time.Sleep(time.Second * 3)
 	m := map[string]interface{}{}
-	html, _ := page.HTML()
+	html, _ := global.Page.HTML()
 	println(len(html))
 	if !strings.Contains(html, "申请访问") && !strings.Contains(html, "不符合互联网相关安全规范") && !strings.Contains(html, "对方未开通空间") && !strings.Contains(html, "暂不支持非好友访问") && !strings.Contains(html, "您访问的页面找不回来了") {
-		nice_name, err := page.Find(".head-detail .user-name").Text()
+		nice_name, err := global.Page.Find(".head-detail .user-name").Text()
 		if err != nil {
 			println(err.Error())
 		}
 		m["nice_name"] = nice_name
 		m["qq"] = qq
-		m["head_img"], _ = page.FindByID("QM_OwnerInfo_Icon").Attribute("src")
+		m["head_img"], _ = global.Page.FindByID("QM_OwnerInfo_Icon").Attribute("src")
 		m["url"] = url
 		//个人动态
 		tell := getTell(page, qq)
@@ -323,35 +324,35 @@ func getQQ(page *agouti.Page, qq string) {
 	}
 }
 
-func SwitchFrame(page *agouti.Page, frameSeletor string, f func()) {
-	iframe, ee := page.Find(frameSeletor).Elements()
+func SwitchFrame(page *utils.AgoutiPage, frameSeletor string, f func()) {
+	iframe, ee := global.Page.Find(frameSeletor).Elements()
 	if ee != nil {
 		println(ee.Error())
 	}
 	if len(iframe) > 0 {
-		ee2 := page.SwitchToRootFrameByName(iframe[0])
+		ee2 := global.Page.SwitchToRootFrameByName(iframe[0])
 		if ee2 != nil {
 			println(ee.Error())
 		}
 		f()
-		page.SwitchToParentFrame()
+		global.Page.SwitchToParentFrame()
 	} else {
 		println("******     iframe   切换失败")
 	}
 }
 
 //个人动态
-func getTell(page *agouti.Page, qq string) []map[string]interface{} {
+func getTell(page *utils.AgoutiPage, qq string) []map[string]interface{} {
 
-	page.Navigate("https://user.qzone.qq.com/" + qq + "/311")
+	global.Page.Navigate("https://user.qzone.qq.com/" + qq + "/311")
 	time.Sleep(time.Second * 3)
 
-	iframe, ee := page.Find(".app_canvas_frame").Elements()
+	iframe, ee := global.Page.Find(".app_canvas_frame").Elements()
 	if ee != nil {
 		println(ee.Error())
 	}
 	if len(iframe) > 0 {
-		ee2 := page.SwitchToRootFrameByName(iframe[0])
+		ee2 := global.Page.SwitchToRootFrameByName(iframe[0])
 		if ee2 != nil {
 			println(ee.Error())
 		}
@@ -359,7 +360,7 @@ func getTell(page *agouti.Page, qq string) []map[string]interface{} {
 	time.Sleep(time.Second * 3)
 	saveQQ(page)
 	ms := []map[string]interface{}{}
-	eles, _ := page.Find("#host_home_feeds li").Elements()
+	eles, _ := global.Page.Find("#host_home_feeds li").Elements()
 	if eles != nil {
 		for i := range eles {
 			m := map[string]interface{}{}
@@ -411,10 +412,10 @@ func getTell(page *agouti.Page, qq string) []map[string]interface{} {
 			ms = append(ms, m)
 		}
 	} else {
-		html, _ := page.Find("#msgList").Text()
+		html, _ := global.Page.Find("#msgList").Text()
 		println(len(html))
 
-		eles, _ := page.Find("#msgList").All(".feed").Elements()
+		eles, _ := global.Page.Find("#msgList").All(".feed").Elements()
 		if eles != nil {
 			for i := range eles {
 				m := map[string]interface{}{}
@@ -473,55 +474,55 @@ func getTell(page *agouti.Page, qq string) []map[string]interface{} {
 			}
 		}
 	}
-	page.SwitchToParentFrame()
+	global.Page.SwitchToParentFrame()
 	return ms
 }
 
 //个人资料
-func getInfo(page *agouti.Page, qq string) map[string]string {
-	page.Navigate("https://user.qzone.qq.com/" + qq + "/1")
+func getInfo(page *utils.AgoutiPage, qq string) map[string]string {
+	global.Page.Navigate("https://user.qzone.qq.com/" + qq + "/1")
 	time.Sleep(time.Second * 3)
-	iframe, ee := page.Find(".app_canvas_frame").Elements()
+	iframe, ee := global.Page.Find(".app_canvas_frame").Elements()
 	if ee != nil {
 		println(ee.Error())
 	}
 	if len(iframe) <= 0 {
 		return nil
 	}
-	ee2 := page.SwitchToRootFrameByName(iframe[0])
+	ee2 := global.Page.SwitchToRootFrameByName(iframe[0])
 	if ee2 != nil {
 		println(ee2.Error())
 	}
 
-	text, ee3 := page.FindByID("info_preview").Text()
+	text, ee3 := global.Page.FindByID("info_preview").Text()
 	if ee3 != nil {
 		println(ee3.Error())
-		page.FindByID("info_tab").Click()
+		global.Page.FindByID("info_tab").Click()
 	}
 	if text == "" {
-		page.FindByID("info_tab").Click()
+		global.Page.FindByID("info_tab").Click()
 	}
 	time.Sleep(time.Second * 2)
 
 	m := map[string]string{}
-	m["sex"], _ = page.FindByID("sex").Text()
-	m["age"], _ = page.FindByID("age").Text()
-	m["birthday"], _ = page.FindByID("birthday").Text()
-	m["astro"], _ = page.FindByID("astro").Text()
-	m["live_address"], _ = page.FindByID("live_address").Text()
-	m["marriage"], _ = page.FindByID("marriage").Text()
-	m["blood"], _ = page.FindByID("blood").Text()
-	m["hometown_address"], _ = page.FindByID("hometown_address").Text()
-	m["career"], _ = page.FindByID("career").Text()
-	m["company"], _ = page.FindByID("company").Text()
-	m["company_caddress"], _ = page.FindByID("company_caddress").Text()
-	m["caddress"], _ = page.FindByID("caddress").Text()
-	page.SwitchToParentFrame()
+	m["sex"], _ = global.Page.FindByID("sex").Text()
+	m["age"], _ = global.Page.FindByID("age").Text()
+	m["birthday"], _ = global.Page.FindByID("birthday").Text()
+	m["astro"], _ = global.Page.FindByID("astro").Text()
+	m["live_address"], _ = global.Page.FindByID("live_address").Text()
+	m["marriage"], _ = global.Page.FindByID("marriage").Text()
+	m["blood"], _ = global.Page.FindByID("blood").Text()
+	m["hometown_address"], _ = global.Page.FindByID("hometown_address").Text()
+	m["career"], _ = global.Page.FindByID("career").Text()
+	m["company"], _ = global.Page.FindByID("company").Text()
+	m["company_caddress"], _ = global.Page.FindByID("company_caddress").Text()
+	m["caddress"], _ = global.Page.FindByID("caddress").Text()
+	global.Page.SwitchToParentFrame()
 	return m
 }
 
-func saveQQ(page *agouti.Page) {
-	html, _ := page.HTML()
+func saveQQ(page *utils.AgoutiPage) {
+	html, _ := global.Page.HTML()
 	reg := regexp.MustCompile("http(s)?://user.qzone.qq.com/\\d+")
 	strs := reg.FindAllString(html, -1)
 	for i := 0; i < len(strs); i++ {
@@ -534,10 +535,10 @@ func saveQQ(page *agouti.Page) {
 }
 
 //个人主页获取QQ信息
-func getHome(page *agouti.Page, count int) []map[string]string {
+func getHome(page *utils.AgoutiPage, count int) []map[string]string {
 	saveQQ(page)
 
-	list, e6 := page.Find("#feed_friend_list").All(".f-single").Elements()
+	list, e6 := global.Page.Find("#feed_friend_list").All(".f-single").Elements()
 	if e6 != nil {
 		println("获取好友数据失败", e6.Error())
 		return nil
@@ -599,7 +600,7 @@ func getHome(page *agouti.Page, count int) []map[string]string {
 
 		println("---------------------------------------------------------\r\n")
 	}
-	page.RunScript("document.documentElement.scrollTop=document.body.clientHeight;", nil, nil)
+	global.Page.RunScript("document.documentElement.scrollTop=document.body.clientHeight;", nil, nil)
 	time.Sleep(time.Second * 3)
 	count++
 	//分页次数
@@ -609,7 +610,7 @@ func getHome(page *agouti.Page, count int) []map[string]string {
 	return nil
 }
 
-func setCookieLogin(page *agouti.Page, key string) (bool, error) {
+func setCookieLogin(page *utils.AgoutiPage, key string) (bool, error) {
 	rc := redis.Cache
 	cookieRd, _ := rc.GetString(key)
 	if cookieRd == "" {
@@ -622,7 +623,7 @@ func setCookieLogin(page *agouti.Page, key string) (bool, error) {
 	}
 	for i := range cks {
 		cc := cks[i]
-		page.SetCookie(cc)
+		global.Page.SetCookie(cc)
 	}
 	return true, nil
 }
