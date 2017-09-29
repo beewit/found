@@ -192,7 +192,7 @@ func main() {
 	if err != nil {
 		global.Log.Info(err.Error())
 	} else {
-		flog, ce := setCookieLogin(global.Page, "qqzone"+global.QZONEUName)
+		flog, ce := SetCookieLogin("qqzone" + global.QZONEUName)
 		if ce != nil {
 			global.Log.Info(ce.Error())
 			return
@@ -628,7 +628,7 @@ func getHome(page *utils.AgoutiPage, count int) []map[string]string {
 	return nil
 }
 
-func setCookieLogin(page *utils.AgoutiPage, key string) (bool, error) {
+func SetCookieLogin(key string) (bool, error) {
 	rc := redis.Cache
 	cookieRd, _ := rc.GetString(key)
 	if cookieRd == "" {

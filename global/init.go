@@ -16,5 +16,7 @@ var (
 	RD         = redis.Cache
 	QZONEUName = convert.ToString(CFG.Get("qzone.u"))
 	QZONEPwd   = convert.ToString(CFG.Get("qzone.p"))
+	SinaWeiboUName = convert.ToString(CFG.Get("sinaWeibo.u"))
+	SinaWeiboPwd   = convert.ToString(CFG.Get("sinaWeibo.p"))
 	Page       = new(utils.AgoutiPage)
 )
