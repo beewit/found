@@ -95,7 +95,7 @@ func getData() map[string]interface{} {
 
 func saveData() {
 	for {
-		global.Log.Info("执行数据保存服务")
+		global.Log.Info("执行QQ数据保存服务")
 		m := getData()
 		if m != nil {
 			iw, _ := utils.NewIdWorker(1)
