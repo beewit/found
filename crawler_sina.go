@@ -310,56 +310,69 @@ func getUserInfo(href string) {
 	}
 }
 
+func Try(fun func(), handler func(interface{})) {
+	defer func() {
+		if err := recover(); err != nil {
+			handler(err)
+		}
+	}()
+	fun()
+}
+
 func saveSinaData() {
 	for {
-		global.Log.Info("执行Sina数据保存服务")
-		m := getSinaData()
-		if m != nil {
+		Try(func() {
+			global.Log.Info("执行Sina数据保存服务")
+			m := getSinaData()
+			if m != nil {
 
-			weibos := m["weibos"]
-			delete(m, "weibos")
+				weibos := m["weibos"]
+				delete(m, "weibos")
 
-			iw, _ := utils.NewIdWorker(1)
+				iw, _ := utils.NewIdWorker(1)
 
-			sinaBaseId, _ := iw.NextId()
-			m["id"] = sinaBaseId
-			m["ct_time"] = utils.CurrentTime()
-			m["ut_time"] = utils.CurrentTime()
-			if convert.ToString(m["desc"]) != "" {
-				m["mydesc"] = m["desc"]
-				delete(m, "desc")
-			}
-			_, err := global.DB.InsertMap("sina_user_base_info", m)
-			if err != nil {
-				global.Log.Error("sina_user_base_info 数据保存失败:", err.Error())
-			} else {
-				if weibos != nil {
-					wb, err := convert.Obj2ListMap(weibos)
-					if err != nil {
-						global.Log.Error("weibo 数据转换[]map失败:", err.Error())
-					} else {
-						for i := 0; i < len(wb); i++ {
-							wb[i]["id"], _ = iw.NextId()
-							wb[i]["sina_id"] = sinaBaseId
-							if convert.ToString(wb[i]["like"]) != "" {
-								wb[i]["likes"] = wb[i]["like"]
-								delete(wb[i], "like")
-							}
-							if convert.ToString(wb[i]["like"]) != "" {
-								wb[i]["source"] = wb[i]["from"]
-								delete(wb[i], "from")
-							}
-
-						}
-						_, err = global.DB.InsertMapList("weibo", wb)
+				sinaBaseId, _ := iw.NextId()
+				m["id"] = sinaBaseId
+				m["ct_time"] = utils.CurrentTime()
+				m["ut_time"] = utils.CurrentTime()
+				if convert.ToString(m["desc"]) != "" {
+					m["mydesc"] = m["desc"]
+					delete(m, "desc")
+				}
+				_, err := global.DB.InsertMap("sina_user_base_info", m)
+				if err != nil {
+					global.Log.Error("sina_user_base_info 数据保存失败:", err.Error())
+				} else {
+					if weibos != nil {
+						wb, err := convert.Obj2ListMap(weibos)
 						if err != nil {
-							global.Log.Error("weibo 数据保存失败:", err.Error())
+							global.Log.Error("weibo 数据转换[]map失败:", err.Error())
+						} else {
+							for i := 0; i < len(wb); i++ {
+								wb[i]["id"], _ = iw.NextId()
+								wb[i]["sina_id"] = sinaBaseId
+								if convert.ToString(wb[i]["like"]) != "" {
+									wb[i]["likes"] = wb[i]["like"]
+									delete(wb[i], "like")
+								}
+								if convert.ToString(wb[i]["like"]) != "" {
+									wb[i]["source"] = wb[i]["from"]
+									delete(wb[i], "from")
+								}
+
+							}
+							_, err = global.DB.InsertMapList("weibo", wb)
+							if err != nil {
+								global.Log.Error("weibo 数据保存失败:", err.Error())
+							}
 						}
 					}
 				}
 			}
-		}
-		time.Sleep(time.Second * 10)
+			time.Sleep(time.Second * 10)
+		}, func(e interface{}) {
+			print(e)
+		})
 	}
 }
 
