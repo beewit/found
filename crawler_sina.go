@@ -337,8 +337,8 @@ func saveSinaData() {
 				m["ut_time"] = utils.CurrentTime()
 				if convert.ToString(m["desc"]) != "" {
 					m["mydesc"] = m["desc"]
-					delete(m, "desc")
 				}
+				delete(m, "desc")
 				_, err := global.DB.InsertMap("sina_user_base_info", m)
 				if err != nil {
 					global.Log.Error("sina_user_base_info 数据保存失败:", err.Error())
@@ -353,13 +353,12 @@ func saveSinaData() {
 								wb[i]["sina_id"] = sinaBaseId
 								if convert.ToString(wb[i]["like"]) != "" {
 									wb[i]["likes"] = wb[i]["like"]
-									delete(wb[i], "like")
 								}
+								delete(wb[i], "like")
 								if convert.ToString(wb[i]["like"]) != "" {
 									wb[i]["source"] = wb[i]["from"]
-									delete(wb[i], "from")
 								}
-
+								delete(wb[i], "from")
 							}
 							_, err = global.DB.InsertMapList("weibo", wb)
 							if err != nil {
