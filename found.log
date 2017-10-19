@@ -14165,3 +14165,21 @@
 2017/10/10 18:07:42 [I] [crawler_sina.go:79] 添加数据到Redis结果1
 2017/10/10 18:07:42 [I] [crawler_sina.go:79] 添加数据到Redis结果1
 2017/10/10 18:07:42 [I] [crawler_sina.go:79] 添加数据到Redis结果1
+2017/10/12 17:12:59 [I] [crawler_sina.go:325] 执行Sina数据保存服务
+2017/10/12 17:12:59 [I] [crawler_sina.go:113] failed to connect to WebDriver: service not started
+2017/10/12 17:13:29 [I] [crawler_sina.go:325] 执行Sina数据保存服务
+2017/10/12 17:13:30 [W] [crawler_sina.go:89] 无数据%!(EXTRA string=dial tcp 127.0.0.1:6379: connectex: No connection could be made because the target machine actively refused it.)
+2017/10/12 17:13:40 [I] [crawler_sina.go:325] 执行Sina数据保存服务
+2017/10/12 17:13:41 [W] [crawler_sina.go:89] 无数据%!(EXTRA string=dial tcp 127.0.0.1:6379: connectex: No connection could be made because the target machine actively refused it.)
+2017/10/12 17:13:56 [I] [crawler_qq.go:98] 执行QQ数据保存服务
+2017/10/12 17:13:57 [W] [crawler_qq.go:83] 无数据%!(EXTRA string=dial tcp 127.0.0.1:6379: connectex: No connection could be made because the target machine actively refused it.)
+2017/10/12 17:14:07 [I] [crawler_qq.go:98] 执行QQ数据保存服务
+2017/10/12 17:14:08 [W] [crawler_qq.go:83] 无数据%!(EXTRA string=dial tcp 127.0.0.1:6379: connectex: No connection could be made because the target machine actively refused it.)
+2017/10/12 17:14:18 [I] [crawler_qq.go:98] 执行QQ数据保存服务
+2017/10/12 17:14:18 [I] [crawler_qq.go:230] 登陆按钮%!(EXTRA string=帐号密码登录)
+2017/10/12 17:14:19 [W] [crawler_qq.go:83] 无数据%!(EXTRA string=dial tcp 127.0.0.1:6379: connectex: No connection could be made because the target machine actively refused it.)
+2017/10/12 17:14:27 [I] [crawler_qq.go:247] element not found
+2017/10/12 17:14:29 [I] [crawler_qq.go:98] 执行QQ数据保存服务
+2017/10/12 17:14:30 [W] [crawler_qq.go:83] 无数据%!(EXTRA string=dial tcp 127.0.0.1:6379: connectex: No connection could be made because the target machine actively refused it.)
+2017/10/12 17:14:40 [I] [crawler_qq.go:98] 执行QQ数据保存服务
+2017/10/12 17:14:41 [W] [crawler_qq.go:83] 无数据%!(EXTRA string=dial tcp 127.0.0.1:6379: connectex: No connection could be made because the target machine actively refused it.)

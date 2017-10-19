@@ -1,0 +1,31 @@
+{
+  "mysql": {
+    "host": "106.14.169.82:3306",
+    "database": "personas",
+    "user": "newie",
+    "password": "hjWa39IGcVLfkVtarFnz1a",
+    "maxOpenConns": "10",
+    "maxIdleConns": "10"
+  },
+  "qzone": {
+    "u":"2458208514",
+    "p":"2458208514qq"
+  },
+  "sinaWeibo": {
+    "u":"18223277005",
+    "p":"13696433488wb"
+  },
+  "redis": {
+    "host": "127.0.0.1:6379",
+    "database": "0",
+    "password": "123456",
+    "maxOpenConns": "10",
+    "maxIdleConns": "10"
+  },
+  "logger": {
+    "path": "found.log",
+    "level": "7",
+    "maxdays": "10",
+    "separate": "error"
+  }
+}
