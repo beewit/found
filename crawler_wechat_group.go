@@ -20,8 +20,8 @@ func main() {
 		"--disable-infobars",
 		"--app=http://www.baidu.com",
 		"--webkit-text-size-adjust"}))
-	var startUrl = make([]string, 27)
-	for i := 26; i >= 0; i-- {
+	var startUrl = make([]string, 10)
+	for i := 9; i >= 0; i-- {
 		startUrl[i] = fmt.Sprintf("http://www.weixinqun.com/group?p=%d", i)
 	}
 	global.Driver.Start()
