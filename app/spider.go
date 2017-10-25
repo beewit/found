@@ -64,7 +64,10 @@ func (spider *Spider) Run(downloadFunc func(spider *Spider)) {
 		}
 		spider.Run(downloadFunc)
 	} else {
-		spider.Close()
+		//spider.Close()
+		//1小时后重启
+		time.Sleep(time.Hour)
+		spider.Run(downloadFunc)
 	}
 
 }
