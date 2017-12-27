@@ -329,9 +329,7 @@ func saveSinaData() {
 				weibos := m["weibos"]
 				delete(m, "weibos")
 
-				iw, _ := utils.NewIdWorker(1)
-
-				sinaBaseId, _ := iw.NextId()
+				sinaBaseId :=utils.ID()
 				m["id"] = sinaBaseId
 				m["ct_time"] = utils.CurrentTime()
 				m["ut_time"] = utils.CurrentTime()
@@ -349,7 +347,7 @@ func saveSinaData() {
 							global.Log.Error("weibo 数据转换[]map失败:", err.Error())
 						} else {
 							for i := 0; i < len(wb); i++ {
-								wb[i]["id"], _ = iw.NextId()
+								wb[i]["id"] =utils.ID()
 								wb[i]["sina_id"] = sinaBaseId
 								if convert.ToString(wb[i]["like"]) != "" {
 									wb[i]["likes"] = wb[i]["like"]

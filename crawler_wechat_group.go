@@ -14,7 +14,6 @@ import (
 
 func main() {
 	var err error
-	iw, _ := utils.NewIdWorker(1)
 	global.Driver = agouti.ChromeDriver(agouti.ChromeOptions("args", []string{
 		"--start-maximized",
 		"--disable-infobars",
@@ -68,8 +67,7 @@ func main() {
 				} else if strings.Contains(thisUrl, "http://www.weixinqun.com/group?id=") {
 					//详情页面
 					m := map[string]interface{}{}
-					id, _ := iw.NextId()
-					m["id"] = id
+					m["id"] = utils.ID()
 					m["url"] = url
 					m["name"] = spider.TrimSpace(global.WechatGroupPage.FindByClass("des_info_text").Text())
 					m["intro"] = spider.TrimSpace(global.WechatGroupPage.FirstByClass("des_info_text2").Text())

@@ -98,11 +98,9 @@ func saveData() {
 		global.Log.Info("执行QQ数据保存服务")
 		m := getData()
 		if m != nil {
-			iw, _ := utils.NewIdWorker(1)
-
 			qqBase := map[string]interface{}{}
-			qqBase_id, _ := iw.NextId()
-			qqBase["id"] = qqBase_id
+			qqBaseId  := utils.ID()
+			qqBase["id"] = qqBaseId
 			qqBase["qq"] = m["qq"]
 			qqBase["nickname"] = m["nice_name"]
 			qqBase["head_img"] = m["head_img"]
@@ -142,7 +140,6 @@ func saveData() {
 						global.Log.Error("tell QQ 动态 转换失败:", err.Error())
 					} else {
 						for i := 0; i < len(tell); i++ {
-							qqSay_id, _ := iw.NextId()
 							sayMap := map[string]interface{}{}
 							comments := ""
 							if tell[i]["tell_comments"] != nil {
@@ -153,8 +150,8 @@ func saveData() {
 									comments = string(b)
 								}
 							}
-							sayMap["id"] = qqSay_id
-							sayMap["qq_base_id"] = qqBase_id
+							sayMap["id"] = utils.ID()
+							sayMap["qq_base_id"] = qqBaseId
 							sayMap["say"] = tell[i]["tell_text"]
 							sayMap["content"] = tell[i]["tell_summary"]
 							sayMap["phone"] = tell[i]["tell_phone"]

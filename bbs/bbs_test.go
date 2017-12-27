@@ -487,10 +487,8 @@ func TestBBS(t *testing.T) {
 					if today == "" && yesterday == "" && title == "" {
 
 					} else {
-						iw, _ := utils.NewIdWorker(1)
-						id, _ := iw.NextId()
 						m := make(map[string]interface{})
-						m["id"] = id
+						m["id"] = utils.ID()
 						m["title"] = title
 						m["url"] = convert.ToString(t.Value)
 						if today != "" {
